@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones en Tiempo Real</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+        }
+        #notifications {
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .notification {
+            margin-bottom: 10px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Notificaciones</h1>
+    <div id="notifications" class="list-group"></div>
+    <audio id="alert-sound" src="alerta.mp3" preload="auto"></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const notificationsContainer = document.getElementById('notifications');
+        const alertSound = document.getElementById('alert-sound');
+
+        // Manejo de nueva notificación
+        socket.on('new-report', (data) => {
+            const notificationElement = document.createElement('div');
+            notificationElement.className = 'notification list-group-item list-group-item-action';
+            notificationElement.innerHTML = `
+                <h5 class="mb-1">¡ALERTA!</h5>
+                <p>${data.observaciones}</p>
+                <p class="details">
+                    Zona: ${data.zona}<br>
+                    Hora: ${data.hora}<br>
+                    Ataco: <span class="ataco">${data.ataco ? 'Sí' : 'No'}</span>
+                </p>
+            `;
+            notificationsContainer.insertBefore(notificationElement, notificationsContainer.firstChild);
+
+            // Eliminar la notificación después de 5 segundos
+            setTimeout(() => {
+                notificationsContainer.removeChild(notificationElement);
+            }, 7000);
+
+            // Intentar reproducir el sonido
+            alertSound.play().catch(error => {
+                console.error('Error al intentar reproducir el sonido:', error);
+            });
+        });
+    </script>
+</body>
+</html>
